@@ -1,16 +1,14 @@
 package com.example.weatherapp;
 
-import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.webkit.WebView;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 import org.xmlpull.v1.XmlPullParserException;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
@@ -18,6 +16,12 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
     private static final String TAG = "DownloadXmlTask";
 
     public static final String URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat=60.10;lon=9.58";
+
+    private AppCompatActivity source;
+
+    public DownloadXmlTask(AppCompatActivity source) {
+        this.source = source;
+    }
 
     // Implementation of AsyncTask used to download XML feed from stackoverflow.com.
     @Override
@@ -33,8 +37,9 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        Log.d(TAG, "Result of parsing" + result);
-//        return result;
+        Log.d(TAG, "Task finished! " + result);
+        TextView weatherText = (TextView) source.findViewById(R.id.weather_text);
+        weatherText.setText(result);
     }
 
 
@@ -49,10 +54,7 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
         String url = null;
         String summary = null;
 
-        StringBuilder htmlString = new StringBuilder();
-//        htmlString.append("<h3>" + getResources().getString(R.string.page_title) + "</h3>");
-//        htmlString.append("<em>" + getResources().getString(R.string.updated) + " " +
-//                formatter.format(rightNow.getTime()) + "</em>");
+        StringBuilder weatherString = new StringBuilder();
 
         try {
             stream = downloadUrl(urlString);
@@ -65,22 +67,11 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
             }
         }
 
-        // StackOverflowXmlParser returns a List (called "entries") of Entry objects.
-        // Each Entry object represents a single post in the XML feed.
-        // This section processes the entries list to combine each entry with HTML markup.
-        // Each entry is displayed in the UI as a link that optionally includes
-        // a text summary.
         for (WeatherXmlParser.Entry entry : entries) {
-//            htmlString.append("<p><a href='");
-            htmlString.append(entry.temperature);
-//            htmlString.append("'>" + entry.title + "</a></p>");
-            // If the user set the preference to include summary text,
-            // adds it to the display.
-//            if (pref) {
-//                htmlString.append(entry.summary);
-//            }
+            weatherString.append(entry.temperature);
+            weatherString.append(entry.windDirection);
         }
-        return htmlString.toString();
+        return weatherString.toString();
     }
 
     // Given a string representation of a URL, sets up a connection and gets
