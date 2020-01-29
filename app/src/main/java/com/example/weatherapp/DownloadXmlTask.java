@@ -3,19 +3,22 @@ package com.example.weatherapp;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import org.xmlpull.v1.XmlPullParserException;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class DownloadXmlTask extends AsyncTask<String, Void, String> {
     private static final String TAG = "DownloadXmlTask";
 
     public static final String URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat=60.10;lon=9.58";
+    public static final String IMAGE_URL = "https://api.met.no/weatherapi/weathericon/1.1/?symbol=X&content_type=image/svg%2Bxml";
 
     private AppCompatActivity source;
 
@@ -49,7 +52,7 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
         InputStream stream = null;
         // Instantiate the parser
         WeatherXmlParser weatherXmlParser = new WeatherXmlParser();
-        List<WeatherXmlParser.Entry> entries = null;
+        WeatherForecast weatherForecast = null;
         String title = null;
         String url = null;
         String summary = null;
@@ -58,7 +61,7 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
 
         try {
             stream = downloadUrl(urlString);
-            entries = weatherXmlParser.parse(stream);
+            weatherForecast = weatherXmlParser.parse(stream);
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
         } finally {
@@ -67,10 +70,10 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
             }
         }
 
-        for (WeatherXmlParser.Entry entry : entries) {
-            weatherString.append(entry.temperature);
-            weatherString.append(entry.windDirection);
-        }
+//        for (WeatherXmlParser.Entry entry : entries) {
+//            weatherString.append(entry.temperature);
+//            weatherString.append(entry.windDirection);
+//        }
         return weatherString.toString();
     }
 

@@ -1,6 +1,8 @@
 package com.example.weatherapp;
 
+import android.util.Pair;
 import android.util.Xml;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -11,23 +13,7 @@ import java.util.List;
 
 public class WeatherXmlParser {
 
-    public static class Entry {
-        public final String temperature;
-        public final String windSpeed;
-        public final String windDirection;
-        public final String cloudiness;
-        public final String precipitation;
-
-        private Entry(String temperature, String windSpeed, String windDirection, String cloudiness, String precipitation) {
-            this.temperature = temperature;
-            this.windSpeed = windSpeed;
-            this.windDirection = windDirection;
-            this.cloudiness = cloudiness;
-            this.precipitation = precipitation;
-        }
-    }
-
-    public List parse(InputStream in) throws XmlPullParserException, IOException {
+    public WeatherForecast parse(InputStream in) throws XmlPullParserException, IOException {
         try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
@@ -39,7 +25,8 @@ public class WeatherXmlParser {
         }
     }
 
-    public List readFeed(XmlPullParser parser) throws IOException, XmlPullParserException {
+    public WeatherForecast readFeed(XmlPullParser parser) throws IOException, XmlPullParserException {
+        WeatherForecast weatherForecast = null;
         List entries = new ArrayList();
 
         parser.require(XmlPullParser.START_TAG, null, "weatherdata");
@@ -53,22 +40,26 @@ public class WeatherXmlParser {
             } else if (name.equals("time")) {
                 parser.nextTag();
             } else if (name.equals("location")) {
-                entries.add(readEntry(parser));
-                break;
+                entries.add(readWeatherForecast(parser));
             } else {
                 skip(parser);
             }
         }
-        return entries;
+        weatherForecast = (WeatherForecast) entries.get(0);
+//        WeatherForecast precipitationForecast = (WeatherForecast) entries.get(1);
+//        weatherForecast.precipitation = precipitationForecast.precipitation;
+//        weatherForecast.symbol = precipitationForecast.symbol;
+        return weatherForecast;
     }
 
-    private Entry readEntry(XmlPullParser parser) throws IOException, XmlPullParserException {
+    private WeatherForecast readWeatherForecast(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "location");
         String temperature = null;
         String windSpeed = null;
         String windDirection = null;
         String cloudiness = null;
-        String precipitation = null;
+        Pair<String, String> precipitation = null;
+        String symbol = null;
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -83,11 +74,15 @@ public class WeatherXmlParser {
                 windSpeed = readWindSpeed(parser);
             } else if (name.equals("cloudiness")) {
                 cloudiness = readCloudiness(parser);
+            } else if (name.equals("precipitation")) {
+                precipitation = readPrecipitation(parser);
+            } else if (name.equals("symbol")) {
+                symbol = readSymbol(parser);
             } else {
                 skip(parser);
             }
         }
-        return new Entry(temperature, windSpeed, windDirection, cloudiness, precipitation);
+        return new WeatherForecast(temperature, windSpeed, windDirection, cloudiness, precipitation, symbol);
     }
 
     private String readTemperature(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -119,6 +114,23 @@ public class WeatherXmlParser {
         String cloudiness = parser.getAttributeValue(null, "percent");
         parser.nextTag();
         parser.require(XmlPullParser.END_TAG, null, "cloudiness");
+        return cloudiness;
+    }
+
+    private Pair<String, String> readPrecipitation(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "precipitation ");
+        String minPrecipitation = parser.getAttributeValue(null, "minvalue ");
+        String maxPrecipitation = parser.getAttributeValue(null, "maxvalue ");
+        parser.nextTag();
+        parser.require(XmlPullParser.END_TAG, null, "precipitation ");
+        return Pair.create(minPrecipitation, maxPrecipitation);
+    }
+
+    private String readSymbol(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "symbol ");
+        String cloudiness = parser.getAttributeValue(null, "number");
+        parser.nextTag();
+        parser.require(XmlPullParser.END_TAG, null, "symbol ");
         return cloudiness;
     }
 
