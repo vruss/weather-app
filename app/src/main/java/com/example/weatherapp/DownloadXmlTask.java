@@ -4,8 +4,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -20,10 +18,10 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
     public static final String URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat=60.10;lon=9.58";
     public static final String IMAGE_URL = "https://api.met.no/weatherapi/weathericon/1.1/?symbol=X&content_type=image/svg%2Bxml";
 
-    private AppCompatActivity source;
+    private TextView textView;
 
-    public DownloadXmlTask(AppCompatActivity source) {
-        this.source = source;
+    public DownloadXmlTask(TextView textView) {
+        this.textView = textView;
     }
 
     // Implementation of AsyncTask used to download XML feed from stackoverflow.com.
@@ -41,8 +39,7 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         Log.d(TAG, "Task finished! " + result);
-        TextView weatherText = (TextView) source.findViewById(R.id.weather_text);
-        weatherText.setText(result);
+        textView.setText(result);
     }
 
 
@@ -53,27 +50,23 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
         // Instantiate the parser
         WeatherXmlParser weatherXmlParser = new WeatherXmlParser();
         WeatherForecast weatherForecast = null;
-        String title = null;
-        String url = null;
-        String summary = null;
 
         StringBuilder weatherString = new StringBuilder();
 
         try {
             stream = downloadUrl(urlString);
             weatherForecast = weatherXmlParser.parse(stream);
-            // Makes sure that the InputStream is closed after the app is
-            // finished using it.
         } finally {
             if (stream != null) {
                 stream.close();
             }
         }
 
-//        for (WeatherXmlParser.Entry entry : entries) {
-//            weatherString.append(entry.temperature);
-//            weatherString.append(entry.windDirection);
-//        }
+        weatherString.append("Temperature: ").append(weatherForecast.temperature).append(" celsius\n");
+        weatherString.append("Wind speed: ").append(weatherForecast.windSpeed).append(" mps, toward ").append(weatherForecast.windDirection);
+        weatherString.append("\nCloudiness: ").append(weatherForecast.cloudiness).append("%\n");
+        weatherString.append("Precipitation: between ").append(weatherForecast.precipitation.first).append(" mm and ").append(weatherForecast.precipitation.second).append(" mm\n");
+
         return weatherString.toString();
     }
 
