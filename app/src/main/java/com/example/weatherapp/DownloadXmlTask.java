@@ -2,7 +2,6 @@ package com.example.weatherapp;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.TextView;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -12,42 +11,44 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class DownloadXmlTask extends AsyncTask<String, Void, String> {
+public class DownloadXmlTask extends AsyncTask<String, Void, WeatherForecast> {
+
+    public interface AsyncResponse {
+        void processFinish(WeatherForecast output);
+    }
+
     private static final String TAG = "DownloadXmlTask";
 
     public static final String URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat=60.10;lon=9.58";
     public static final String IMAGE_URL = "https://api.met.no/weatherapi/weathericon/1.1/?symbol=X&content_type=image/svg%2Bxml";
 
-    private TextView textView;
+    public AsyncResponse delegate = null;
 
-    public DownloadXmlTask(TextView textView) {
-        this.textView = textView;
+    public DownloadXmlTask(AsyncResponse delegate) {
+        this.delegate = delegate;
     }
 
     // Implementation of AsyncTask used to download XML feed from stackoverflow.com.
     @Override
-    protected String doInBackground(String... urls) {
+    protected WeatherForecast doInBackground(String... urls) {
         try {
             return loadXmlFromNetwork(urls[0]);
-        } catch (IOException e) {
-            return "Connection error!" + e.toString();
         } catch (XmlPullParserException e) {
-            return "Xml error!" + e.getMessage();
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     @Override
-    protected void onPostExecute(String result) {
-        Log.d(TAG, "Task finished! " + result);
-        textView.setText(result);
+    protected void onPostExecute(WeatherForecast result) {
+        delegate.processFinish(result);
     }
 
 
-    // Uploads XML from stackoverflow.com, parses it, and combines it with
-    // HTML markup. Returns HTML string.
-    private String loadXmlFromNetwork(String urlString) throws XmlPullParserException, IOException {
+    private WeatherForecast loadXmlFromNetwork(String urlString) throws XmlPullParserException, IOException {
         InputStream stream = null;
-        // Instantiate the parser
         WeatherXmlParser weatherXmlParser = new WeatherXmlParser();
         WeatherForecast weatherForecast = null;
 
@@ -62,12 +63,8 @@ public class DownloadXmlTask extends AsyncTask<String, Void, String> {
             }
         }
 
-        weatherString.append("Temperature: ").append(weatherForecast.temperature).append(" celsius\n");
-        weatherString.append("Wind speed: ").append(weatherForecast.windSpeed).append(" mps, toward ").append(weatherForecast.windDirection);
-        weatherString.append("\nCloudiness: ").append(weatherForecast.cloudiness).append("%\n");
-        weatherString.append("Precipitation: between ").append(weatherForecast.precipitation.first).append(" mm and ").append(weatherForecast.precipitation.second).append(" mm\n");
 
-        return weatherString.toString();
+        return weatherForecast;
     }
 
     // Given a string representation of a URL, sets up a connection and gets

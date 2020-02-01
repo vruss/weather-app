@@ -19,4 +19,12 @@ public class WeatherForecast {
         this.precipitation = precipitation;
         this.symbol = symbol;
     }
+
+    @Override
+    public String toString() {
+        return "Temperature: " + temperature + " celsius\n" +
+                "Wind speed: " + windSpeed + " mps, toward " + windDirection + "\n" +
+                "Cloudiness: " + cloudiness + "%\n" +
+                "Precipitation: between " + precipitation.first + " mm and " + precipitation.second + " mm\n";
+    }
 }
