@@ -1,4 +1,4 @@
-package com.example.weatherapp;
+package com.example.weatherapp.entity;
 
 import android.util.Pair;
 

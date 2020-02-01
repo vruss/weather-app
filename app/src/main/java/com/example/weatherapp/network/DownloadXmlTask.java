@@ -1,7 +1,10 @@
-package com.example.weatherapp;
+package com.example.weatherapp.network;
 
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.weatherapp.controller.WeatherXmlParser;
+import com.example.weatherapp.entity.WeatherForecast;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -11,24 +14,18 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class DownloadXmlTask extends AsyncTask<String, Void, WeatherForecast> {
-
-    public interface AsyncResponse {
-        void processFinish(WeatherForecast output);
-    }
+public class DownloadXmlTask extends AsyncTask<String, Void, WeatherForecast>   {
 
     private static final String TAG = "DownloadXmlTask";
 
     public static final String URL = "https://api.met.no/weatherapi/locationforecast/1.9/?lat=60.10;lon=9.58";
-    public static final String IMAGE_URL = "https://api.met.no/weatherapi/weathericon/1.1/?symbol=X&content_type=image/svg%2Bxml";
 
-    public AsyncResponse delegate = null;
+    private AsyncResponse<WeatherForecast> delegate = null;
 
-    public DownloadXmlTask(AsyncResponse delegate) {
+    public DownloadXmlTask(AsyncResponse<WeatherForecast> delegate) {
         this.delegate = delegate;
     }
 
-    // Implementation of AsyncTask used to download XML feed from stackoverflow.com.
     @Override
     protected WeatherForecast doInBackground(String... urls) {
         try {
@@ -43,6 +40,7 @@ public class DownloadXmlTask extends AsyncTask<String, Void, WeatherForecast> {
 
     @Override
     protected void onPostExecute(WeatherForecast result) {
+        super.onPostExecute(result);
         delegate.processFinish(result);
     }
 
@@ -52,8 +50,6 @@ public class DownloadXmlTask extends AsyncTask<String, Void, WeatherForecast> {
         WeatherXmlParser weatherXmlParser = new WeatherXmlParser();
         WeatherForecast weatherForecast = null;
 
-        StringBuilder weatherString = new StringBuilder();
-
         try {
             stream = downloadUrl(urlString);
             weatherForecast = weatherXmlParser.parse(stream);
@@ -62,8 +58,6 @@ public class DownloadXmlTask extends AsyncTask<String, Void, WeatherForecast> {
                 stream.close();
             }
         }
-
-
         return weatherForecast;
     }
 

@@ -1,11 +1,17 @@
 package com.example.weatherapp;
 
+import android.graphics.drawable.VectorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.weatherapp.entity.WeatherForecast;
+import com.example.weatherapp.network.AsyncResponse;
+import com.example.weatherapp.network.DownloadSvgTask;
+import com.example.weatherapp.network.DownloadXmlTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,11 +38,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void downloadWeatherData() {
-        new DownloadXmlTask(new DownloadXmlTask.AsyncResponse() {
+        new DownloadXmlTask(new AsyncResponse<WeatherForecast>() {
             @Override
             public void processFinish(WeatherForecast output) {
                 if(output != null) {
                     weatherText.setText(output.toString());
+
+                    new DownloadSvgTask(new AsyncResponse<VectorDrawable>() {
+                        @Override
+                        public void processFinish(VectorDrawable output) {
+
+                        }
+                    }).execute(output.symbol.charAt(0));
                 }
                 else {
                     weatherText.setText("Connection error. Please try again.");

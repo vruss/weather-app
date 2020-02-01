@@ -1,7 +1,9 @@
-package com.example.weatherapp;
+package com.example.weatherapp.controller;
 
 import android.util.Pair;
 import android.util.Xml;
+
+import com.example.weatherapp.entity.WeatherForecast;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
