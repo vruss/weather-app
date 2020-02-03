@@ -74,7 +74,7 @@ public class DownloadSvgTask extends AsyncTask<Character, Void, VectorDrawable> 
         return connStream;
     }
 
-    private URL createUrl(char symbol) throws MalformedURLException {
+    public static URL createUrl(char symbol) throws MalformedURLException {
         String imageUrl = IMAGE_URL.replace('X', symbol);
         return new URL(imageUrl);
     }
